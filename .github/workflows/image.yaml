@@ -23,7 +23,9 @@ jobs:
         run: docker pull mcr.microsoft.com/playwright:${{ github.event.inputs.version }}  
 
       - name: Tag Docker image
-        run: docker tag mcr.microsoft.com/playwright:${{ github.event.inputs.version }} dipjyotimetia/playwright:${{ github.event.inputs.version }}
+        run: |
+          docker tag mcr.microsoft.com/playwright:${{ github.event.inputs.version }} dipjyotimetia/playwright:${{ github.event.inputs.version }}
+          docker tag mcr.microsoft.com/playwright:latest dipjyotimetia/playwright:latest
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
@@ -32,4 +34,6 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Upload Docker image to private registry
-        run: docker push dipjyotimetia/playwright:latest
+        run: |
+          docker push dipjyotimetia/playwright:${{ github.event.inputs.version }}
+          docker push dipjyotimetia/playwright:latest
