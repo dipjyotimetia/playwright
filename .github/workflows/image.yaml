@@ -7,8 +7,11 @@ on:
     inputs:
       version:
         description: Bump Version
-        default: v1.38.0
+        default: latest
         required: true
+
+  schedule:
+    - cron: '0 0 * * *' # Runs every day at midnight UTC
 
 jobs:
   publish_to_registry:
@@ -18,12 +21,22 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v4
 
+      - name: Get latest Playwright version
+        id: get_version
+        run: |
+          if [ "${{ github.event.inputs.version }}" = "latest" ]; then
+            LATEST_VERSION=$(curl -s https://mcr.microsoft.com/v2/playwright/tags/list | jq -r '.tags[]' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
+            echo "LATEST_VERSION=$LATEST_VERSION" >> $GITHUB_ENV
+          else
+            echo "LATEST_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+          fi
+
       - name: Download Docker image from public registry
-        run: docker pull mcr.microsoft.com/playwright:${{ github.event.inputs.version }}  
+        run: docker pull mcr.microsoft.com/playwright:${{ env.LATEST_VERSION }}
 
       - name: Tag Docker image
         run: |
-          docker tag mcr.microsoft.com/playwright:${{ github.event.inputs.version }} dipjyotimetia/playwright:${{ github.event.inputs.version }}
+          docker tag mcr.microsoft.com/playwright:${{ env.LATEST_VERSION }} dipjyotimetia/playwright:${{ env.LATEST_VERSION }}
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
@@ -33,4 +46,4 @@ jobs:
 
       - name: Upload Docker image to private registry
         run: |
-          docker push dipjyotimetia/playwright:${{ github.event.inputs.version }}
+          docker push dipjyotimetia/playwright:${{ env.LATEST_VERSION }}
