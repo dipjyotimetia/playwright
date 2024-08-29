@@ -3,13 +3,6 @@ env:
   DOCKER_BUILDKIT: 1
 
 on: 
-  workflow_dispatch:
-    inputs:
-      version:
-        description: Bump Version
-        default: latest
-        required: true
-
   schedule:
     - cron: '0 0 * * *' # Runs every day at midnight UTC
 
